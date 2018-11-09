@@ -1,12 +1,12 @@
 package main
 
 import (
-	"database/sql"
 	"log"
 	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/websocket"
+	"github.com/jinzhu/gorm"
 )
 
 /* The value here in clients isn't actually needed but we are using a map
@@ -25,13 +25,21 @@ func main() {
 	var srvr Server
 	var err error
 	srvr.broadcast = make(chan Message)
-	srvr.db, err = sql.Open("mysql", "root:testpass@tcp(db:3306)/challenge")
+	srvr.db, err = gorm.Open("mysql", "root:testpass@tcp(db:3306)/challenge")
+	defer srvr.db.Close()
 	if err != nil {
 		log.Fatal("unable to connect to DB", err)
 	}
+	srvr.db.AutoMigrate(&User{}, &Message{}) // move db stuff to a file
+	/*
+		if !srvr.db.HasTable(&User{}) {
+			srvr.db.CreateTable(&User{})
+		} else if !srvr.db.HasTable(&Message{}) {
+			srvr.db.CreateTable(&Message{})
+		}
+	*/
 
 	srvr.SetupRoutes()
-
 	/*
 		Start listening for incoming chat messages from the broadcast channel
 		and pass them to clients over their respective WebSocket connection.
