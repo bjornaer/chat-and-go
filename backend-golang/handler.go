@@ -21,19 +21,18 @@ func (s Server) TestConnection(w http.ResponseWriter, r *http.Request) {
 
 func (s Server) FetchHistory(w http.ResponseWriter, r *http.Request) {
 	/*
-		var result string
-		if err := s.db.QueryRow(`SELECT col FROM test`).Scan(&result); err != nil {
-			log.Panic(err)
-		}
-
-		w.Header().Add("Content-Type", "application/json")
-		if err := json.NewEncoder(w).Encode(map[string]string{
-			"result":  result,
-			"backend": "go",
-		}); err != nil {
-			log.Panic(err)
-		}
+		get paginated result for all messages
+		serve it for chat
 	*/
+	var msgs Messages
+	output, err := json.Marshal(msgs)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	w.Write(output)
 }
 
 func (s Server) Login(w http.ResponseWriter, r *http.Request) {
