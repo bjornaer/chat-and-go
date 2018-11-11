@@ -23,13 +23,17 @@ var upgrader = websocket.Upgrader{
 
 func main() {
 	var srvr Server
-	var err error
+	//var err error
 	srvr.broadcast = make(chan Message)
-	srvr.db, err = gorm.Open("mysql", "root:testpass@tcp(db:3306)/challenge")
-	defer srvr.db.Close()
+	log.Println("Broadcast setup!")
+	db, err := gorm.Open("mysql", "root:testpass@tcp(db:3306)/challenge")
+	//172.17.0.2:3306 //root:root@tcp(0.0.0.0:3309)/challenge
+	defer db.Close()
 	if err != nil {
 		log.Fatal("unable to connect to DB", err)
 	}
+	log.Println("Nice! Connection with db done! Migration comes next!")
+	srvr.db = db
 	srvr.db.AutoMigrate(&User{}, &Message{}) // move db stuff to a file
 	/*
 		if !srvr.db.HasTable(&User{}) {
@@ -39,7 +43,7 @@ func main() {
 		}
 	*/
 
-	srvr.SetupRoutes()
+	rtr := srvr.SetupRoutes()
 	/*
 		Start listening for incoming chat messages from the broadcast channel
 		and pass them to clients over their respective WebSocket connection.
@@ -48,7 +52,7 @@ func main() {
 
 	// Start the server on localhost port 8000 and log any errors
 	log.Println("http server started on :8000")
-	err = http.ListenAndServe(":8000", nil)
+	err = http.ListenAndServe(":8000", rtr)
 	if err != nil {
 		log.Fatal("ListenAndServe: ", err)
 	}

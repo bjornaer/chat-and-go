@@ -24,15 +24,17 @@ func (s Server) FetchHistory(w http.ResponseWriter, r *http.Request) {
 		get paginated result for all messages
 		serve it for chat
 	*/
-	var msgs Messages
-	output, err := json.Marshal(msgs)
+	msgs := make(Messages, 1)
+	err := json.NewEncoder(w).Encode(map[string]Messages{
+		"messages": msgs,
+	})
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(output)
+	//w.Write(output)
 }
 
 func (s Server) Login(w http.ResponseWriter, r *http.Request) {

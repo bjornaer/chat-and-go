@@ -1,5 +1,5 @@
 import React from 'react';
-import ReactDOM from 'react-dom';
+//import ReactDOM from 'react-dom';
 
 class SubmitOnEnterForm extends React.Component {
   constructor(props) {
@@ -33,4 +33,5 @@ class SubmitOnEnterForm extends React.Component {
   }
 }
 
-module.exports = SubmitOnEnterForm;
+export default SubmitOnEnterForm;
+//module.exports = SubmitOnEnterForm;

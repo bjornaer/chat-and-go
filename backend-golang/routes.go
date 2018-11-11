@@ -8,7 +8,7 @@ import (
 
 const frontEntry = "../frontend-react/public"
 
-func (s Server) SetupRoutes() {
+func (s Server) SetupRoutes() *mux.Router {
 	r := mux.NewRouter()
 	// create the login route based on the api-attempt!
 	r.HandleFunc("/login", s.Login).Methods("POST")
@@ -19,4 +19,5 @@ func (s Server) SetupRoutes() {
 	r.Handle("/", fs).Methods("GET")
 	// Configure websocket route
 	r.HandleFunc("/ws", s.HandleConnections)
+	return r
 }
