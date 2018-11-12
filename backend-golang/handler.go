@@ -2,32 +2,47 @@ package main
 
 import (
 	"encoding/json"
-	"io/ioutil"
+	"fmt"
 	"log"
 	"net/http"
 )
 
 func (s Server) TestConnection(w http.ResponseWriter, r *http.Request) {
-	result := "testing"
+	//result := "testing"
 
 	w.Header().Add("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]string{
-		"result":  result,
+		"result":  "result",
 		"backend": "go",
 	}); err != nil {
 		log.Panic(err)
 	}
+	/* testUsr := User{Username: "Chatengo"}
+	s.db.Create(&testUsr)
+	testMsg := Message{Username: testUsr.Username, Content: "Hello There!"}
+	s.db.Create(&testMsg)
+	w.Header().Add("Content-Type", "application/json")
+	if err := json.NewEncoder(w).Encode(map[string]interface{}{
+		"testMsg": testMsg,
+		"testUsr": testUsr,
+	}); err != nil {
+		log.Panic(err)
+	} */
 }
 
 func (s Server) FetchHistory(w http.ResponseWriter, r *http.Request) {
 	/*
-		get paginated result for all messages
+		TODO get paginated result for all messages
 		serve it for chat
 	*/
-	msgs := make(Messages, 1)
-	err := json.NewEncoder(w).Encode(map[string]Messages{
+	var msgs []Message
+	err := s.db.Order("ID desc").Limit(100).Find(&msgs).Error
+	/* err := json.NewEncoder(w).Encode(map[string]Messages{
 		"messages": msgs,
-	})
+	}) */
+	//var msg Message
+	//s.db.Last(&msg)
+	err = json.NewEncoder(w).Encode(msgs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -39,15 +54,8 @@ func (s Server) FetchHistory(w http.ResponseWriter, r *http.Request) {
 
 func (s Server) Login(w http.ResponseWriter, r *http.Request) {
 	// read request body to get user json
-	b, err := ioutil.ReadAll(r.Body)
-	defer r.Body.Close()
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	// unmarshal user json into usr variable
 	var usr User
-	err = json.Unmarshal(b, &usr)
+	err := json.NewDecoder(r.Body).Decode(&usr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -55,15 +63,16 @@ func (s Server) Login(w http.ResponseWriter, r *http.Request) {
 	// find if user exists or create record if not, assign it to loggedUsr
 	var loggedUsr User
 	s.db.Where("username = ?", usr.Username).FirstOrCreate(&loggedUsr)
+	fmt.Println("USER SHOULD BE: " + loggedUsr.Username)
 	// respond with usename and id
-	output, err := json.Marshal(loggedUsr)
+	err = json.NewEncoder(w).Encode(loggedUsr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	w.Write(output)
+	//w.Write(output)
 }
 
 func (s Server) HandleConnections(w http.ResponseWriter, r *http.Request) {
@@ -103,10 +112,10 @@ func (s Server) HandleMessages() {
 		// Grab the next message from the broadcast channel
 		msg := <-s.broadcast
 		// Store new message in the DB
-		// {code for that here}
+		s.db.Create(&msg)
 		// Send it out to every client that is currently connected
 		for client := range clients {
-			err := client.WriteJSON(msg)
+			err := client.WriteJSON(&msg)
 			if err != nil {
 				log.Printf("error: %v", err)
 				client.Close()

@@ -6,20 +6,19 @@ import (
 
 // Message defined what is written and from which user
 type Message struct {
-	gorm.Model
-	Username string `json:"username";gorm:"foreign_key"`
-	Message  string `json:"message"`
+	//gorm.Model
+	ID int `json:"id" gorm:"primary_key"`
+	//Timestamp time.Time `json:"timestamp"`
+	Username string `json:"username"` //gorm:"foreign_key"
+	Content  string `json:"content"`
 }
 
 type Messages []Message
 
-type Chats struct {
-	Mssgs Messages `json:messages`
-}
-
 type User struct {
-	gorm.Model
-	Username string `gorm: "unique"`
+	//gorm.Model
+	ID       int    `gorm:"primary_key"`
+	Username string `json:"username" db:"username" gorm:"unique"`
 }
 
 type Server struct {

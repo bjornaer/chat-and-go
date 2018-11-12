@@ -6,7 +6,7 @@ import (
 	"github.com/gorilla/mux"
 )
 
-const frontEntry = "../frontend-react/public"
+const frontEntry = "./public"
 
 func (s Server) SetupRoutes() *mux.Router {
 	r := mux.NewRouter()
@@ -17,6 +17,7 @@ func (s Server) SetupRoutes() *mux.Router {
 	// Create a simple file server
 	fs := http.FileServer(http.Dir(frontEntry))
 	r.Handle("/", fs).Methods("GET")
+	//r.PathPrefix("/").Handler(fs)
 	// Configure websocket route
 	r.HandleFunc("/ws", s.HandleConnections)
 	return r

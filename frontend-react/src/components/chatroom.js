@@ -11,6 +11,7 @@ class Chatroom extends React.Component {
         username: "Chatengo",
         content: <p>Welcome!</p>
     }] };
+    // eslint-disable-next-line
     this.ws;
     this.initSocket = this.initSocket.bind(this);
     this.sendMessage = this.sendMessage.bind(this);
@@ -85,6 +86,7 @@ class Chatroom extends React.Component {
         </pre>
         <SubmitOnEnterForm
           placeholder="press enter to send"
+          // eslint-disable-next-line
           onSubmit={this.sendMessage} />
         <form className="input" onSubmit={(e) => {e.preventDefault();this.sendMessage}}>
             <input type="text" ref="msg" />

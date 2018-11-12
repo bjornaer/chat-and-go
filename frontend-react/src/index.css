@@ -67,15 +67,6 @@ p {
   max-width: 200px;
 }
 
- .chat-room .chat img {
-  width: 20px;
-  height: 20px;
-  border-radius: 50%;
-  position: absolute;
-  top: -10px;
-  left: 0px;
-}
-
  .chat-room .chat.right {
   float: right;
   clear: both;
@@ -85,53 +76,20 @@ p {
   text-decoration: none;
   color:#3498DB;
 }
-
- .input {
-  height: 40px;
-  width: 100%;
-  background: rgba(30, 228, 148, 0.7);
-  display: flex;
-  flex-direction: row;
-  align-items: center;
-}
-
- .input input[type="text"] {
-  background: rgba(255, 255, 255, 0.5);
-  outline: 0;
-  border: 2px solid #1EE494;
-  padding: 0 5px;
-  border-top-left-radius: 5px;
-  border-bottom-left-radius: 5px;
-  margin-left: 10px;
-  height: 30px;
-  width: 270px;
-  box-sizing: border-box;
-  font-size: 14px;
-}
-
- .input input[type="submit"] {
-  background: transparent;
-  border: 1px solid #1EE494;
-  height: 30px;
-  width: 70px;
-  font-size: 14px;
-  box-sizing: border-box;
-  border-top-right-radius: 5px;
-  border-bottom-right-radius: 5px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-}
-
- .input input[type="submit"]:hover {
-  background: #1EE494;
-  color: #FFF;
+.chat-room {
+  text-align: left;
+  background: #f1f1f1;
+  width: 500px;
+  min-height: 300px;
+  padding: 20px;
 }
 
 .login {
   height: 100vh;
   width: 100vw;
   background-color: rgba(83, 168, 248, 0.7);
-  display: flex;
+  display: inline-block;
   align-items: center;
   justify-content: center;
+  margin:0 auto;
 }

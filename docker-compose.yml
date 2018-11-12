@@ -12,13 +12,22 @@ services:
 
     backend:
         build: backend-golang
+        depends_on: 
+            - db
         links:
             - db
+        expose:
+            - 8000
         ports:
             - "18000:8000"
+        environment:
+            NAME: backend
+            APP_SERVER_PORT: 8000
 
     fullstack:
         build: frontend-react
+        depends_on: 
+            - backend
         links:
             - backend
         ports:
