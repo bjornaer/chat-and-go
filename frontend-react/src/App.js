@@ -78,7 +78,7 @@ class App extends React.Component {
       headers: {
         "Content-type": "application/json; charset=UTF-8"
       },
-      body: `"Username": "${username}"`
+      body: `"username": "${username}"`
     })
       .then((response) => { return response.json(); })
       .then((json) => { this.setState({ user: json.user }); });

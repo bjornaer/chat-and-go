@@ -9,7 +9,8 @@ class Chatroom extends React.Component {
     super(props);
     this.state = { messages: [{
         username: "Chatengo",
-        content: <p>Welcome!</p>
+        content: <p>Welcome!</p>,
+        timestamp: now()
     }] };
     // eslint-disable-next-line
     this.ws;
@@ -20,6 +21,7 @@ class Chatroom extends React.Component {
   initSocket () {
     this.ws = new WebSocket("ws://" + window.location.host + "/ws");
     this.ws.onmessage = (msg) => {
+      msg.data = JSON.parse(msg.data)
       this.state.messages.push(msg.data);
       this.setState({ messages: this.state.messages });
     }
@@ -64,7 +66,8 @@ class Chatroom extends React.Component {
     this.ws.send(
       JSON.stringify({
         username: this.props.user.Username,
-        content: (this.generateTimestamp() + " <" + this.props.user.Username + "> " + message)
+        content: (message),
+        timestamp: this.generateTimestamp()
       })
     );
   }
@@ -76,7 +79,7 @@ class Chatroom extends React.Component {
         <h3>Chat-And-Go</h3>
         <pre className="chat-room">
           {/*this.state.messages.join('\n')*/}
-          <ul className="chat-room" ref="chats">
+          <ul className="chat-room" ref="messages">
                 {
                     messages.map((message) => 
                         <Message chat={message} user={this.props.user.Username}/>
@@ -88,10 +91,6 @@ class Chatroom extends React.Component {
           placeholder="press enter to send"
           // eslint-disable-next-line
           onSubmit={this.sendMessage} />
-        <form className="input" onSubmit={(e) => {e.preventDefault();this.sendMessage}}>
-            <input type="text" ref="msg" />
-            <input type="submit" value="Submit" />
-        </form>
       </div>
     )
   }

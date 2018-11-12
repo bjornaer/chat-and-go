@@ -1,9 +1,10 @@
 import React from 'react';
 
-const Message = ({message, user, time}) => (
+const Message = ({message, user}) => (
     <li className={`chat ${user === message.username ? "right" : "left"}`}>
-        <strong>{message.username} - {time}</strong>
+        <strong>{message.username}</strong>
         {message.content}
+        <p className="time-of-message">{message.timestamp}</p>
     </li>
 );
 

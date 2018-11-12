@@ -18,13 +18,13 @@
       <center>
         <h3>Chat</h3>
         <pre id="chat"></pre>
+        <input placeholder="who are you" id="name" type="text">
         <input placeholder="say something" id="text" type="text">
       </center>
   
       <script>
         var url = "ws://" + window.location.host + "/ws";
         var ws = new WebSocket(url);
-        var name = "Guest" + Math.floor(Math.random() * 1000);
         var chat = document.getElementById("chat");
         var text = document.getElementById("text");
         var now = function () {
@@ -38,9 +38,12 @@
         };
         text.onkeydown = function (e) {
           if (e.keyCode === 13 && text.value !== "") {
+            var name = document.getElementById("name").value;
+            name =  name === "" ? "Guest" + Math.floor(Math.random() * 1000) : name;
             ws.send(JSON.stringify({                 
                         username: name,
-                        content: text.value // Strip out html
+                        content: text.value, // Strip out html
+                        timestamp: now()
                     }
                 ));
             text.value = "";
