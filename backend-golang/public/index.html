@@ -42,7 +42,7 @@
             name =  name === "" ? "Guest" + Math.floor(Math.random() * 1000) : name;
             ws.send(JSON.stringify({                 
                         username: name,
-                        content: text.value, // Strip out html
+                        content: text.value,
                         timestamp: now()
                     }
                 ));

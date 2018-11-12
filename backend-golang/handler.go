@@ -31,10 +31,6 @@ func (s Server) TestConnection(w http.ResponseWriter, r *http.Request) {
 }
 
 func (s Server) FetchHistory(w http.ResponseWriter, r *http.Request) {
-	/*
-		TODO get paginated result for all messages
-		serve it for chat
-	*/
 	var msgs []Message
 	err := s.db.Order("ID desc").Limit(100).Find(&msgs).Error
 	/* err := json.NewEncoder(w).Encode(map[string]Messages{
@@ -52,6 +48,7 @@ func (s Server) FetchHistory(w http.ResponseWriter, r *http.Request) {
 	//w.Write(output)
 }
 
+// Login is the only endpoint for registry and/or login
 func (s Server) Login(w http.ResponseWriter, r *http.Request) {
 	// read request body to get user json
 	var usr User
