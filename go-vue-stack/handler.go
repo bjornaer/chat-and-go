@@ -8,6 +8,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
+// TestConnection just asks for response. Nothing special!
 func (s Server) TestConnection(w http.ResponseWriter, r *http.Request) {
 	//result := "testing"
 
@@ -18,19 +19,9 @@ func (s Server) TestConnection(w http.ResponseWriter, r *http.Request) {
 	}); err != nil {
 		log.Panic(err)
 	}
-	/* testUsr := User{Username: "Chatengo"}
-	s.db.Create(&testUsr)
-	testMsg := Message{Username: testUsr.Username, Content: "Hello There!"}
-	s.db.Create(&testMsg)
-	w.Header().Add("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(map[string]interface{}{
-		"testMsg": testMsg,
-		"testUsr": testUsr,
-	}); err != nil {
-		log.Panic(err)
-	} */
 }
 
+// FetchHistory asks for latest 100 messages as to start chat with a short history
 func (s Server) FetchHistory(w http.ResponseWriter, r *http.Request) {
 	var msgs []Message
 	err := s.db.Order("ID desc").Limit(100).Find(&msgs).Error
@@ -41,9 +32,6 @@ func (s Server) FetchHistory(w http.ResponseWriter, r *http.Request) {
 	err = json.NewEncoder(w).Encode(map[string]Messages{
 		"messages": msgs,
 	})
-	//var msg Message
-	//s.db.Last(&msg)
-	//err = json.NewEncoder(w).Encode(msgs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -83,6 +71,7 @@ func (s Server) Login(w http.ResponseWriter, r *http.Request) {
 	//w.Write(output)
 }
 
+// HandleConnections manages new socket connections and incoming messages
 func (s Server) HandleConnections(w http.ResponseWriter, r *http.Request) {
 	// Upgrade initial GET request to a websocket
 	ws, err := upgrader.Upgrade(w, r, nil)
@@ -115,6 +104,7 @@ func (s Server) HandleConnections(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+// HandleMessages as the name suggests handles that. Sends boradcasted messages to everyone else!
 func (s Server) HandleMessages() {
 	for {
 		// Grab the next message from the broadcast channel

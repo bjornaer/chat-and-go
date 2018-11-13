@@ -14,8 +14,10 @@ type Message struct {
 	Email     string `json:"email"`
 }
 
+// Messages array of Message
 type Messages []Message
 
+// User is a person
 type User struct {
 	//gorm.Model
 	ID       int    `gorm:"primary_key"`
@@ -23,6 +25,7 @@ type User struct {
 	Email    string `json:"email"`
 }
 
+// Server holds the context so everyone uses the same channel to talk to the db and is aware of the broadcast
 type Server struct {
 	db        *gorm.DB
 	broadcast chan Message // broadcast channel
