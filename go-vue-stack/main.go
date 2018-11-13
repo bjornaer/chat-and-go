@@ -23,7 +23,7 @@ var upgrader = websocket.Upgrader{
 func main() {
 	var srvr Server
 	srvr.broadcast = make(chan Message)
-	db, err := gorm.Open("mysql", "root:testpass@tcp(db:3306)/gochat")
+	db, err := gorm.Open("mysql", "root:testpass@tcp(db:3306)/challenge")
 	//db, err := gorm.Open("mysql", "root:testpass@tcp(127.0.0.1:8989)/challenge")
 	defer db.Close()
 	if err != nil {
@@ -34,11 +34,11 @@ func main() {
 	// Add first member of chat, Chatengo, just to say HI!
 	chatengo := User{Username: "ChatenGo", Email: "elmaxogochat@gmail.com"}
 	firstHi := Message{Username: "ChatenGo", Email: "elmaxogochat@gmail.com", Timestamp: "11/12/2018, 10:56:29 PM", Content: "Hello There!"}
-	err = srvr.db.Create(&chatengo).Error
+	err = srvr.db.Where(User{Username: "ChatenGo"}).FirstOrCreate(&chatengo).Error
 	if err != nil {
 		log.Fatal("failed to add first element to DB", err)
 	}
-	err = srvr.db.Create(&firstHi).Error
+	err = srvr.db.Where(Message{Content: "Hello There!"}).FirstOrCreate(&firstHi).Error
 	if err != nil {
 		log.Fatal("failed to add first element to DB", err)
 	}

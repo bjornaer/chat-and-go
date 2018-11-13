@@ -10,8 +10,6 @@ import (
 
 // TestConnection just asks for response. Nothing special!
 func (s Server) TestConnection(w http.ResponseWriter, r *http.Request) {
-	//result := "testing"
-
 	w.Header().Add("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]string{
 		"result":  "result",
