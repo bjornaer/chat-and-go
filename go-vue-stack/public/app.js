@@ -15,14 +15,7 @@ new Vue({
         this.ws = new WebSocket('ws://' + window.location.host + '/ws');
         this.ws.addEventListener('message', function(e) {
             var msg = JSON.parse(e.data);
-            self.chatContent += '<div class="chip">'
-                    + '<img src="' + self.gravatarURL(msg.email) + '">' // Avatar
-                    + msg.username
-                + '</div>'
-                + emojione.toImage(msg.content) + '<br/>'; // Parse emojis
-
-            var element = document.getElementById('chat-messages');
-            element.scrollTop = element.scrollHeight; // Auto scroll to the bottom
+            self.parseMessage(msg, true);
         });
     },
 
@@ -33,8 +26,8 @@ new Vue({
                     JSON.stringify({
                         email: this.email,
                         username: this.username,
-                        content: $('<p>').html(this.newMsg).text(), // Strip out html
-                        timestamp: new Date().toLocaleString()
+                        content: $('<p>').html(this.newMsg).text() // Strip out html
+                        //timestamp: new Date().toLocaleString()
                     }
                 ));
                 this.newMsg = ''; // Reset newMsg
@@ -42,7 +35,7 @@ new Vue({
         },
 
         join: function () {
-            var _this = this;
+            var self = this;
             if (!this.email) {
                 Materialize.toast('You must enter an email', 2000);
                 return
@@ -61,21 +54,22 @@ new Vue({
                 },
                 body: JSON.stringify(opts)
             }).then(function(response) {
-                if(response.status === 409) {
-                    Materialize.toast('Wrong username for email account', 2000)
-                    return
+                if(response.status === 409 || response.status === 502) {
+                    throw "Wrong username or email account!"
                 }
                 return response.json();
             }).then(function(data) {
-                _this.email = email; // $('<p>').html(this.email).text();
-                _this.username = username; // $('<p>').html(this.username).text();
-                _this.joined = true;
+                self.email = email; // $('<p>').html(this.email).text();
+                self.username = username; // $('<p>').html(this.username).text();
+                self.joined = true;
+                self.historical();
+                self.smoothScrollToBottom("chat-messages")
             })
             .catch(e => {
+                Materialize.toast(e, 2000)
                 console.log(e);
                 return
             });
-           this.historical();
         },
 
         gravatarURL: function(email) {
@@ -84,7 +78,9 @@ new Vue({
 
         historical: function() {
             // fetch /history endpoint and forEach do the parsing
-            fetch('/history')
+            // TODO receive paginated result
+            var oldestId;
+            fetch(`/history?oldest=${oldestId}`)
             .then( response => {
                 if(response.status !== 200) {
                     console.log('Whoops! Not the expected status! Status:' + response.status);
@@ -94,7 +90,7 @@ new Vue({
                 .then( data => {
                     var messages = data.messages.reverse()
                     messages.forEach((msg) => {
-                        this.parseMessage(msg);
+                        this.parseMessage(msg, false);
                     })
                 })
             })
@@ -103,15 +99,44 @@ new Vue({
             });
         },
 
-        parseMessage: function(msg) {
+        unreadHist: function() {
+            // fetch /news endpoint and forEach do the parsing
+            var since;
+            fetch(`/newMessages?since=${since}`)
+            .then( response => {
+                if(response.status !== 200) {
+                    console.log('Whoops! Not the expected status! Status:' + response.status);
+                    return
+                }
+                response.json()
+                .then( data => {
+                    var messages = data.messages.reverse()
+                    messages.forEach((msg) => {
+                        this.parseMessage(msg, false);
+                    })
+                })
+            })
+            .catch(err => {
+                console.log('Error retrieving history: -S', err)
+            });
+        },
+
+        parseMessage: function(msg, scroll) {
             this.chatContent += '<div class="chip">'
                     + '<img src="' + this.gravatarURL(msg.email) + '">' // Avatar
                     + msg.username
                 + '</div>'
                 + emojione.toImage(msg.content) + '<br/>'; // Parse emojis
+            if(scroll) {
+                this.smoothScrollToBottom("chat-messages");
+            }
+        },
 
-            var element = document.getElementById('chat-messages');
-            element.scrollTop = element.scrollHeight; // Auto scroll to the bottom
-        }
+        smoothScrollToBottom: function(id) {
+            var div = document.getElementById(id);
+            $('#' + id).animate({
+               scrollTop: div.scrollHeight - div.clientHeight + 500
+            }, 500);
+         }
     }
 });

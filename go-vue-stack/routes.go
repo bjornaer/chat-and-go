@@ -10,14 +10,15 @@ import (
 const frontEntry = "./public"
 
 // SetupRoutes says who handles what and where
-func (s Server) SetupRoutes() *mux.Router {
+func (h Handler) SetupRoutes() *mux.Router {
 	r := mux.NewRouter()
 	// create the login route based on the api-attempt!
-	r.HandleFunc("/login", s.Login).Methods("POST")
-	r.HandleFunc("/history", s.FetchHistory).Methods("GET")
-	r.HandleFunc("/test", s.TestConnection).Methods("GET")
+	r.HandleFunc("/login", h.Login).Methods("POST")
+	r.HandleFunc("/history", h.FetchHistory).Queries("oldest", "{oldest}").Methods("GET")
+	r.HandleFunc("/newMessages", h.FetchNewMessages).Methods("GET")
+	r.HandleFunc("/test", h.TestConnection).Methods("GET")
 	// Configure websocket route
-	r.HandleFunc("/ws", s.HandleConnections)
+	r.HandleFunc("/ws", h.HandleConnections)
 	// Create a simple file server
 	fs := http.FileServer(http.Dir(frontEntry))
 	r.PathPrefix("/").Handler(fs)

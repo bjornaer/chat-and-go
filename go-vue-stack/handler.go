@@ -4,12 +4,14 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
+	"time"
 
 	"github.com/jinzhu/gorm"
 )
 
 // TestConnection just asks for response. Nothing special!
-func (s Server) TestConnection(w http.ResponseWriter, r *http.Request) {
+func (h Handler) TestConnection(w http.ResponseWriter, r *http.Request) {
 	w.Header().Add("Content-Type", "application/json")
 	if err := json.NewEncoder(w).Encode(map[string]string{
 		"result":  "result",
@@ -20,9 +22,33 @@ func (s Server) TestConnection(w http.ResponseWriter, r *http.Request) {
 }
 
 // FetchHistory asks for latest 100 messages as to start chat with a short history
-func (s Server) FetchHistory(w http.ResponseWriter, r *http.Request) {
+func (h Handler) FetchHistory(w http.ResponseWriter, r *http.Request) {
 	var msgs []Message
-	err := s.db.Order("ID desc").Limit(100).Find(&msgs).Error
+	oldestLoadedID := r.FormValue("oldest")
+	// Modify to return paginated result!
+	err := h.db.Where("ID < ?", oldestLoadedID).Order("ID desc").Limit(100).Find(&msgs).Error
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = json.NewEncoder(w).Encode(map[string]Messages{
+		"messages": msgs,
+	})
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
+	//w.Write(output)
+}
+
+// FetchNewMessages asks for latest 100 messages as to start chat with a short history
+func (h Handler) FetchNewMessages(w http.ResponseWriter, r *http.Request) {
+	var msgs []Message
+	i, _ := strconv.ParseInt(r.FormValue("since"), 10, 64)
+	since := time.Unix(i, 0)
+	err := h.db.Where("timestamp > ?", since).Order("timestamp asc").Limit(100).Find(&msgs).Error
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -40,7 +66,7 @@ func (s Server) FetchHistory(w http.ResponseWriter, r *http.Request) {
 }
 
 // Login is the only endpoint for registry and/or login
-func (s Server) Login(w http.ResponseWriter, r *http.Request) {
+func (h Handler) Login(w http.ResponseWriter, r *http.Request) {
 	// read request body to get user json
 	var usr User
 	err := json.NewDecoder(r.Body).Decode(&usr)
@@ -50,8 +76,8 @@ func (s Server) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	// find if user exists or create record if not, assign it to loggedUsr
 	var loggedUsr User
-	if err = s.db.Where("email = ?", usr.Email).First(&loggedUsr).Error; gorm.IsRecordNotFoundError(err) {
-		s.db.Create(&usr)
+	if err = h.db.Where("email = ?", usr.Email).First(&loggedUsr).Error; gorm.IsRecordNotFoundError(err) {
+		h.db.Create(&usr)
 		loggedUsr = usr
 	}
 	// respond with usename and id
@@ -70,7 +96,7 @@ func (s Server) Login(w http.ResponseWriter, r *http.Request) {
 }
 
 // HandleConnections manages new socket connections and incoming messages
-func (s Server) HandleConnections(w http.ResponseWriter, r *http.Request) {
+func (h Handler) HandleConnections(w http.ResponseWriter, r *http.Request) {
 	// Upgrade initial GET request to a websocket
 	ws, err := upgrader.Upgrade(w, r, nil)
 	if err != nil {
@@ -92,23 +118,24 @@ func (s Server) HandleConnections(w http.ResponseWriter, r *http.Request) {
 			so we don't try to read from or send new messages to that client
 		*/
 		err := ws.ReadJSON(&msg)
+		msg.Timestamp = time.Now()
 		if err != nil {
 			log.Printf("error: %v", err)
 			delete(clients, ws)
 			break
 		}
 		// Send the newly received message to the broadcast channel
-		s.broadcast <- msg
+		h.broadcast <- msg
 	}
 }
 
 // HandleMessages as the name suggests handles that. Sends boradcasted messages to everyone else!
-func (s Server) HandleMessages() {
+func (h Handler) HandleMessages() {
 	for {
 		// Grab the next message from the broadcast channel
-		msg := <-s.broadcast
+		msg := <-h.broadcast
 		// Store new message in the DB
-		s.db.Create(&msg)
+		h.db.Create(&msg)
 		// Send it out to every client that is currently connected
 		for client := range clients {
 			err := client.WriteJSON(&msg)

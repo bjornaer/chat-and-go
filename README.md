@@ -14,7 +14,8 @@ _(So_ use an actual email _, if ye already configured this stuff, it's gonna get
 The server handles the following endpoints:
 - `/` --> entrypoint to the chat.
 - `/login` --> logs in if you are already registered, otherwise registers you.
-- `/history` --> brings recent history to the chat
+- `/newMessages?since={since}`--> gets messages since specified date
+- `/history?oldest={oldest already loaded message}` --> brings history to the chat from the oldest already loaded
 - `/ws` --> establishes a websocket connection!
 
 To get the project up and running:
@@ -41,5 +42,7 @@ If you run into issues connecting to the db on startup, try restarting (without 
 
 ##### Bibliography (sort of)
 - [WebSockets](https://github.com/gorilla/websocket/tree/master/examples/chat)
+- [GORM](http://gorm.io/docs/index.html)
 - [VueJS important thingies](https://vuejs.org/v2/guide/events.html)
 - [How to use Gravatar](https://en.gravatar.com/site/implement/)
+- [Materialize CSS](https://materializecss.com/getting-started.html)
