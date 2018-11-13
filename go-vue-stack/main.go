@@ -33,7 +33,7 @@ func main() {
 	srvr.db.AutoMigrate(&User{}, &Message{}) // move db stuff to a file
 	// Add first member of chat, Chatengo, just to say HI!
 	chatengo := User{Username: "ChatenGo", Email: "elmaxogochat@gmail.com"}
-	firstHi := Message{Username: "ChatenGo", Email: "elmaxogochat@gmail.com", Timestamp: "11/12/2018, 10:56:29 PM"}
+	firstHi := Message{Username: "ChatenGo", Email: "elmaxogochat@gmail.com", Timestamp: "11/12/2018, 10:56:29 PM", Content: "Hello There!"}
 	err = srvr.db.Create(&chatengo).Error
 	if err != nil {
 		log.Fatal("failed to add first element to DB", err)

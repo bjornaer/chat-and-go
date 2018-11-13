@@ -9,6 +9,7 @@ import (
 // getenv variable to use react frontend or vue
 const frontEntry = "./public"
 
+// SetupRoutes says who handles what and where
 func (s Server) SetupRoutes() *mux.Router {
 	r := mux.NewRouter()
 	// create the login route based on the api-attempt!
