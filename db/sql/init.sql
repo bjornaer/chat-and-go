@@ -1,4 +1,4 @@
-USE challenge;
+USE gochat;
 
 CREATE TABLE test(col VARCHAR(10));
 

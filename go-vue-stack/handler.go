@@ -2,9 +2,10 @@ package main
 
 import (
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
+
+	"github.com/jinzhu/gorm"
 )
 
 func (s Server) TestConnection(w http.ResponseWriter, r *http.Request) {
@@ -33,12 +34,16 @@ func (s Server) TestConnection(w http.ResponseWriter, r *http.Request) {
 func (s Server) FetchHistory(w http.ResponseWriter, r *http.Request) {
 	var msgs []Message
 	err := s.db.Order("ID desc").Limit(100).Find(&msgs).Error
-	/* err := json.NewEncoder(w).Encode(map[string]Messages{
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	err = json.NewEncoder(w).Encode(map[string]Messages{
 		"messages": msgs,
-	}) */
+	})
 	//var msg Message
 	//s.db.Last(&msg)
-	err = json.NewEncoder(w).Encode(msgs)
+	//err = json.NewEncoder(w).Encode(msgs)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -59,9 +64,15 @@ func (s Server) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	// find if user exists or create record if not, assign it to loggedUsr
 	var loggedUsr User
-	s.db.Where("username = ?", usr.Username).FirstOrCreate(&loggedUsr)
-	fmt.Println("USER SHOULD BE: " + loggedUsr.Username)
+	if err = s.db.Where("email = ?", usr.Email).First(&loggedUsr).Error; gorm.IsRecordNotFoundError(err) {
+		s.db.Create(&usr)
+		loggedUsr = usr
+	}
 	// respond with usename and id
+	if usr.Username != loggedUsr.Username {
+		http.Error(w, err.Error(), http.StatusConflict)
+		return
+	}
 	err = json.NewEncoder(w).Encode(loggedUsr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

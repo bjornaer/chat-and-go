@@ -5,13 +5,13 @@ services:
         image: mysql:5.7
         environment:
             - MYSQL_ROOT_PASSWORD=testpass
-            - MYSQL_DATABASE=challenge
+            - MYSQL_DATABASE=gochat
         volumes:
             - devmysqldb:/var/lib/mysql
             - ./db/sql:/docker-entrypoint-initdb.d
 
-    backend:
-        build: backend-golang
+    gochat:
+        build: go-vue-stack
         depends_on: 
             - db
         links:
@@ -21,17 +21,8 @@ services:
         ports:
             - "18000:8000"
         environment:
-            NAME: backend
+            NAME: chat-and-go
             APP_SERVER_PORT: 8000
-
-    fullstack:
-        build: frontend-react
-        depends_on: 
-            - backend
-        links:
-            - backend
-        ports:
-            - "13000:3000"
 
 volumes:  
     devmysqldb:
