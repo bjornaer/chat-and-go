@@ -14,7 +14,7 @@ func (h Handler) SetupRoutes() *mux.Router {
 	r := mux.NewRouter()
 	// create the login route based on the api-attempt!
 	r.HandleFunc("/login", h.Login).Methods("POST")
-	r.HandleFunc("/history", h.FetchHistory).Queries("oldest", "{oldest}").Methods("GET")
+	r.HandleFunc("/history", h.FetchHistory).Queries("oldest", "{oldest}", "quantity", "{quantity}").Methods("GET")
 	r.HandleFunc("/newMessages", h.FetchNewMessages).Queries("id", "{id}").Methods("GET")
 	r.HandleFunc("/test", h.TestConnection).Methods("GET")
 	// Configure websocket route
