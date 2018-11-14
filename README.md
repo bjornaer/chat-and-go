@@ -1,6 +1,12 @@
 # chat-and-go   
 [![Go Report Card](https://goreportcard.com/badge/github.com/Draska/chat-and-go)](https://goreportcard.com/report/github.com/Draska/chat-and-go)
 
+- [What is this?](#What is this?)
+- [Setup](#Setup)
+- [Endpoints](#Endpoints)
+- [TO-DO](#TO-DO)
+- [Bibliography](#Bibliography)
+
 ### What is this?
 This is a chat web app running on Golang and VueJS. This is **_Chat-And-Go!_** 
 
@@ -46,9 +52,9 @@ The server handles the following endpoints:
 *I am deciding that "unread" is all the messages that were sent since the last interaction from the user.
 
 ### TO-DO
-[ ] Normalize DB --> kill the data redundancies
-[ ] Add tests!!!
-[ ] Split the frontend in a microservice in itslef
+- [ ] Normalize DB --> kill the data redundancies
+- [ ] Add tests!!!
+- [ ] Split the frontend in a microservice in itslef
 
 
 ### Bibliography
