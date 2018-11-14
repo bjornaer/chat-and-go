@@ -6,8 +6,8 @@ import (
 	"github.com/gorilla/mux"
 )
 
-// getenv variable to use react frontend or vue
-const frontEntry = "./public"
+// where frontend stuff awaits
+const frontEntry = "../public"
 
 // SetupRoutes says who handles what and where
 func (h Handler) SetupRoutes() *mux.Router {
