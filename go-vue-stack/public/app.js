@@ -63,8 +63,6 @@ new Vue({
                 return response.json();
             }).then(function(data) {
                 self.user = data;
-                //self.email = email; // $('<p>').html(this.email).text();
-                //self.username = username; // $('<p>').html(this.username).text();
                 self.joined = true;
                 self.historical();
                 self.smoothScrollToBottom("chat-messages")
@@ -82,11 +80,10 @@ new Vue({
         },
 
         historical: function() {
-            // fetch /history endpoint and forEach do the parsing
             if(this.oldestMessage === 1){
                 return
             }
-            fetch(`/history?oldest=${this.oldestMessage}`)
+            fetch(`/history?oldest=${this.oldestMessage}&quantity=${50}`)
             .then( response => {
                 if(response.status !== 200) {
                     console.log('Whoops! Not the expected status! Status:' + response.status);
@@ -94,7 +91,7 @@ new Vue({
                 }
                 response.json()
                 .then( data => {
-                    var messages = data.messages; // I used to reverse them for good order, but added a parameter to message parser instead
+                    var messages = data.messages;
                     this.oldestMessage = messages[messages.length - 1].id;
                     messages.forEach((msg) => {
                         this.parseMessage(msg, false, "top");
@@ -107,7 +104,6 @@ new Vue({
         },
 
         unreadHistory: function() {
-            // fetch /newMessages endpoint and forEach do the parsing
             fetch(`/newMessages?id=${this.user.id}`)
             .then( response => {
                 if(response.status !== 200) {

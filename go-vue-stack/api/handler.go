@@ -26,11 +26,13 @@ func (h Handler) FetchHistory(w http.ResponseWriter, r *http.Request) {
 	var msgs []Message
 	var err error
 	oldestLoadedID := r.FormValue("oldest")
+	messageAmount := r.FormValue("quantity")
 	id, _ := strconv.ParseInt(oldestLoadedID, 10, 64)
+	quantity, _ := strconv.ParseInt(messageAmount, 10, 64)
 	if id < 0 {
-		err = h.db.Order("ID desc").Limit(100).Find(&msgs).Error
+		err = h.db.Order("ID desc").Limit(quantity).Find(&msgs).Error
 	} else {
-		err = h.db.Where("ID < ?", oldestLoadedID).Order("ID desc").Limit(100).Find(&msgs).Error
+		err = h.db.Where("ID < ?", oldestLoadedID).Order("ID desc").Limit(quantity).Find(&msgs).Error
 	}
 	// Modify to return paginated result!
 
@@ -38,6 +40,7 @@ func (h Handler) FetchHistory(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	setHeaderOKStatus(w)
 	err = json.NewEncoder(w).Encode(map[string]Messages{
 		"messages": msgs,
 	})
@@ -45,15 +48,16 @@ func (h Handler) FetchHistory(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	/* w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK) */
 }
 
 // FetchNewMessages asks for latest 10 messages since last registered interaction
 func (h Handler) FetchNewMessages(w http.ResponseWriter, r *http.Request) {
 	var msgs []Message
 	var user User
-	id := r.FormValue("id")
+	userID := r.FormValue("id")
+	id, _ := strconv.ParseInt(userID, 10, 64)
 	err := h.db.Where("id = ?", id).First(&user).Error
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -64,6 +68,7 @@ func (h Handler) FetchNewMessages(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	setHeaderOKStatus(w)
 	err = json.NewEncoder(w).Encode(map[string]Messages{
 		"messages": msgs,
 	})
@@ -71,8 +76,9 @@ func (h Handler) FetchNewMessages(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	/* w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK) */
+
 }
 
 // Login is the only endpoint for registry and/or login
@@ -100,13 +106,14 @@ func (h Handler) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusConflict)
 		return
 	}
+	setHeaderOKStatus(w)
 	err = json.NewEncoder(w).Encode(loggedUsr)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusOK)
+	/* w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK) */
 }
 
 // HandleConnections manages new socket connections and incoming messages
@@ -176,4 +183,9 @@ func (h Handler) HandleMessages() {
 			}
 		}
 	}
+}
+
+func setHeaderOKStatus(w http.ResponseWriter) {
+	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusOK)
 }
