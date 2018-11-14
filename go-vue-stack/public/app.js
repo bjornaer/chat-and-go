@@ -68,7 +68,6 @@ new Vue({
                 self.smoothScrollToBottom("chat-messages")
             })
             .catch(e => {
-                Materialize.toast(e, 2000)
                 Materialize.toast("Review email and username",2000)
                 console.log(e);
                 return
@@ -86,6 +85,7 @@ new Vue({
             fetch(`/history?oldest=${this.oldestMessage}&quantity=${50}`)
             .then( response => {
                 if(response.status !== 200) {
+                    Materialize.toast("Failed retrieving chat history!", 2000)
                     console.log('Whoops! Not the expected status! Status:' + response.status);
                     return
                 }

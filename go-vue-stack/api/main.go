@@ -31,7 +31,6 @@ func main() {
 	var handler Handler
 	handler.broadcast = make(chan Message)
 	dbFullAddress := fmt.Sprintf("root:%s@tcp(db:%s)/%s?parseTime=true", dbPass, dbPort, dbName)
-	//dbFullAddress := "root:testpass@tcp(db:3306)/challenge?parseTime=true"
 	db, err := gorm.Open("mysql", dbFullAddress)
 	defer db.Close()
 	if err != nil {
@@ -41,7 +40,7 @@ func main() {
 	handler.db.AutoMigrate(&User{}, &Message{}) // should move db stuff to a file
 	// Add first member of chat, Chatengo, just to say HI!
 	chatengo := User{Username: "ChatenGo", Email: "elmaxogochat@gmail.com", LastInteraction: time.Now()}
-	firstHi := Message{Username: "ChatenGo", Email: "elmaxogochat@gmail.com", Timestamp: time.Now(), Content: `Hello There! :grin:`}
+	firstHi := Message{Username: "ChatenGo", Email: "elmaxogochat@gmail.com", Timestamp: time.Now(), Content: "Hello There!"}
 	err = handler.db.Where(User{Username: "ChatenGo"}).FirstOrCreate(&chatengo).Error
 	if err != nil {
 		log.Fatal("failed to add first element to DB table User: ", err)

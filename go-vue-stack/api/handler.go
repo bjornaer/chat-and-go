@@ -48,8 +48,6 @@ func (h Handler) FetchHistory(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	/* w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusOK) */
 }
 
 // FetchNewMessages asks for latest 10 messages since last registered interaction
@@ -76,9 +74,6 @@ func (h Handler) FetchNewMessages(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	/* w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusOK) */
-
 }
 
 // Login is the only endpoint for registry and/or login
@@ -112,8 +107,6 @@ func (h Handler) Login(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	/* w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusOK) */
 }
 
 // HandleConnections manages new socket connections and incoming messages
