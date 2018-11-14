@@ -1,7 +1,7 @@
 # chat-and-go   
 [![Go Report Card](https://goreportcard.com/badge/github.com/Draska/chat-and-go)](https://goreportcard.com/report/github.com/Draska/chat-and-go)
 
-- [What is this?](#What is this?)
+- [What is this?](#What-is-this?)
 - [Setup](#Setup)
 - [Endpoints](#Endpoints)
 - [TO-DO](#TO-DO)
