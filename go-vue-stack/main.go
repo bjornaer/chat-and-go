@@ -3,6 +3,7 @@ package main
 import (
 	"log"
 	"net/http"
+	"time"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/gorilla/websocket"
@@ -23,7 +24,7 @@ var upgrader = websocket.Upgrader{
 func main() {
 	var handler Handler
 	handler.broadcast = make(chan Message)
-	db, err := gorm.Open("mysql", "root:testpass@tcp(db:3306)/challenge")
+	db, err := gorm.Open("mysql", "root:testpass@tcp(db:3306)/challenge?parseTime=true")
 	//db, err := gorm.Open("mysql", "root:testpass@tcp(127.0.0.1:8989)/challenge")
 	defer db.Close()
 	if err != nil {
@@ -32,15 +33,15 @@ func main() {
 	handler.db = db
 	handler.db.AutoMigrate(&User{}, &Message{}) // move db stuff to a file
 	// Add first member of chat, Chatengo, just to say HI!
-	chatengo := User{Username: "ChatenGo", Email: "elmaxogochat@gmail.com"}
-	firstHi := Message{Username: "ChatenGo", Email: "elmaxogochat@gmail.com", Timestamp: "11/12/2018, 10:56:29 PM", Content: "Hello There!"}
+	chatengo := User{Username: "ChatenGo", Email: "elmaxogochat@gmail.com", LastInteraction: time.Now()}
+	firstHi := Message{Username: "ChatenGo", Email: "elmaxogochat@gmail.com", Timestamp: time.Now(), Content: `Hello There! :grin:`}
 	err = handler.db.Where(User{Username: "ChatenGo"}).FirstOrCreate(&chatengo).Error
 	if err != nil {
-		log.Fatal("failed to add first element to DB", err)
+		log.Fatal("failed to add first element to DB table User: ", err)
 	}
 	err = handler.db.Where(Message{Content: "Hello There!"}).FirstOrCreate(&firstHi).Error
 	if err != nil {
-		log.Fatal("failed to add first element to DB", err)
+		log.Fatal("failed to add first element to DB table Message: ", err)
 	}
 
 	rtr := handler.SetupRoutes()

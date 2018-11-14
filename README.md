@@ -9,16 +9,21 @@ To login enter an email and choose an username(and remember them!)
 Don't worry, the email is just to get you a nice gravatar icon! 
 _(So_ use an actual email _, if ye already configured this stuff, it's gonna get your image - and that rocks.)_
 
-**This project is dockerized, so you don't need to suffer configuring an environment!**
+If the preloaded history is not enough, click `Load Older Messages` until you reach the very beggining of the chat history_(which is ChantenGo saying hi basically)_
+
+Try sending an emoji to your pals! :wink: :wink: `:wink:`
+
+**[This project is dockerized](#to-get-the-project-up-and-running), so you don't need to suffer configuring an environment!**
 
 The server handles the following endpoints:
 - `/` --> entrypoint to the chat.
-- `/login` --> logs in if you are already registered, otherwise registers you.
-- `/newMessages?since={since}`--> gets messages since specified date
-- `/history?oldest={oldest already loaded message}` --> brings history to the chat from the oldest already loaded
-- `/ws` --> establishes a websocket connection!
+- `/login` --> logs in if you are already registered, otherwise registers you. Why? We don't have much auth on this bad boy.
+- `/newMessages?id={user_id}`--> gets unread messages for the specified user --> this endpoint is not used by the chat itself. My criteria for _unread_ is very debatable.
+- `/history?oldest={oldest_message_displayed_id}` --> brings history to the chat from the oldest message already loaded going backwards.
+- `/ws` --> establishes a websocket connection! Registers the clients, and sends new messages to the broadcast unit. This lil' guy has all the _mojo_
+- `/test` --> just spits out a json response, not used by the chat. Doesn't ping the DB or anything nice. Could be a health check endpoint though, will change it some day.
 
-To get the project up and running:
+### To get the project up and running:
 1. [Install Docker](https://docs.docker.com/engine/installation/)
 2. Run the dockerized chat project
     1. `docker-compose up gochat`
@@ -43,6 +48,7 @@ If you run into issues connecting to the db on startup, try restarting (without 
 ##### Bibliography (sort of)
 - [WebSockets](https://github.com/gorilla/websocket/tree/master/examples/chat)
 - [GORM](http://gorm.io/docs/index.html)
+- [Gorilla/Mux router](https://github.com/gorilla/mux)
 - [VueJS important thingies](https://vuejs.org/v2/guide/events.html)
 - [How to use Gravatar](https://en.gravatar.com/site/implement/)
 - [Materialize CSS](https://materializecss.com/getting-started.html)

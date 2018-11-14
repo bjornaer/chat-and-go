@@ -21,12 +21,19 @@ func (h Handler) TestConnection(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// FetchHistory asks for latest 100 messages as to start chat with a short history
+// FetchHistory asks for latest 100 messages as to start chat with a short history, but on next requests it starts going back in time.
 func (h Handler) FetchHistory(w http.ResponseWriter, r *http.Request) {
 	var msgs []Message
+	var err error
 	oldestLoadedID := r.FormValue("oldest")
+	id, _ := strconv.ParseInt(oldestLoadedID, 10, 64)
+	if id < 0 {
+		err = h.db.Order("ID desc").Limit(100).Find(&msgs).Error
+	} else {
+		err = h.db.Where("ID < ?", oldestLoadedID).Order("ID desc").Limit(100).Find(&msgs).Error
+	}
 	// Modify to return paginated result!
-	err := h.db.Where("ID < ?", oldestLoadedID).Order("ID desc").Limit(100).Find(&msgs).Error
+
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -43,12 +50,19 @@ func (h Handler) FetchHistory(w http.ResponseWriter, r *http.Request) {
 	//w.Write(output)
 }
 
-// FetchNewMessages asks for latest 100 messages as to start chat with a short history
+// FetchNewMessages asks for latest 10 messages since last registered interaction
 func (h Handler) FetchNewMessages(w http.ResponseWriter, r *http.Request) {
 	var msgs []Message
-	i, _ := strconv.ParseInt(r.FormValue("since"), 10, 64)
-	since := time.Unix(i, 0)
-	err := h.db.Where("timestamp > ?", since).Order("timestamp asc").Limit(100).Find(&msgs).Error
+	var user User
+	id := r.FormValue("id")
+	err := h.db.Where("id = ?", id).First(&user).Error
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+	//id, _ := strconv.ParseInt(r.FormValue("since"), 10, 64)
+	//since := time.Unix(i, 0)
+	err = h.db.Where("timestamp > ?", user.LastInteraction).Order("timestamp asc").Limit(10).Find(&msgs).Error
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -77,8 +91,13 @@ func (h Handler) Login(w http.ResponseWriter, r *http.Request) {
 	// find if user exists or create record if not, assign it to loggedUsr
 	var loggedUsr User
 	if err = h.db.Where("email = ?", usr.Email).First(&loggedUsr).Error; gorm.IsRecordNotFoundError(err) {
+		// if the user did not exist, we set last interaction as now. If it did exist, let's keep the last value!
+		usr.LastInteraction = time.Now()
 		h.db.Create(&usr)
 		loggedUsr = usr
+	} else if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
 	}
 	// respond with usename and id
 	if usr.Username != loggedUsr.Username {
@@ -110,6 +129,7 @@ func (h Handler) HandleConnections(w http.ResponseWriter, r *http.Request) {
 
 	for {
 		var msg Message
+		var user User
 		/*
 			Read in a new message as JSON and map it to a Message object.
 			If there is some kind of error with reading from the socket,
@@ -124,6 +144,23 @@ func (h Handler) HandleConnections(w http.ResponseWriter, r *http.Request) {
 			delete(clients, ws)
 			break
 		}
+		// Store new message in the DB
+		err = h.db.Create(&msg).Error
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		// update lastInteraction for user
+		err = h.db.Where("email = ?", msg.Email).First(&user).Error
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		err = h.db.Model(&user).Update("LastInteraction", time.Now()).Error
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
 		// Send the newly received message to the broadcast channel
 		h.broadcast <- msg
 	}
@@ -134,8 +171,6 @@ func (h Handler) HandleMessages() {
 	for {
 		// Grab the next message from the broadcast channel
 		msg := <-h.broadcast
-		// Store new message in the DB
-		h.db.Create(&msg)
 		// Send it out to every client that is currently connected
 		for client := range clients {
 			err := client.WriteJSON(&msg)

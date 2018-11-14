@@ -5,8 +5,12 @@ new Vue({
         ws: null, // Our websocket
         newMsg: '', // Holds new messages to be sent to the server
         chatContent: '', // A running list of chat messages displayed on the screen
-        email: null, // Email address used for grabbing an avatar
-        username: null, // Our username
+        user: {
+            email: null,
+            username: null,
+            id: null
+        },
+        oldestMessage: -1,
         joined: false // True if email and username have been filled in
     },
 
@@ -15,7 +19,7 @@ new Vue({
         this.ws = new WebSocket('ws://' + window.location.host + '/ws');
         this.ws.addEventListener('message', function(e) {
             var msg = JSON.parse(e.data);
-            self.parseMessage(msg, true);
+            self.parseMessage(msg, true, "bottom");
         });
     },
 
@@ -24,10 +28,9 @@ new Vue({
             if (this.newMsg != '') {
                 this.ws.send(
                     JSON.stringify({
-                        email: this.email,
-                        username: this.username,
+                        email: this.user.email,
+                        username: this.user.username,
                         content: $('<p>').html(this.newMsg).text() // Strip out html
-                        //timestamp: new Date().toLocaleString()
                     }
                 ));
                 this.newMsg = ''; // Reset newMsg
@@ -36,16 +39,16 @@ new Vue({
 
         join: function () {
             var self = this;
-            if (!this.email) {
+            if (!this.user.email) {
                 Materialize.toast('You must enter an email', 2000);
                 return
             }
-            if (!this.username) {
+            if (!this.user.username) {
                 Materialize.toast('You must choose a username', 2000);
                 return
             }
-            var email = $('<p>').html(this.email).text();
-            var username = $('<p>').html(this.username).text();
+            var email = $('<p>').html(this.user.email).text();
+            var username = $('<p>').html(this.user.username).text();
             var opts = {"email": email, "username": username};
             fetch('/login', {
                 method: 'post',
@@ -59,14 +62,16 @@ new Vue({
                 }
                 return response.json();
             }).then(function(data) {
-                self.email = email; // $('<p>').html(this.email).text();
-                self.username = username; // $('<p>').html(this.username).text();
+                self.user = data;
+                //self.email = email; // $('<p>').html(this.email).text();
+                //self.username = username; // $('<p>').html(this.username).text();
                 self.joined = true;
                 self.historical();
                 self.smoothScrollToBottom("chat-messages")
             })
             .catch(e => {
                 Materialize.toast(e, 2000)
+                Materialize.toast("Review email and username",2000)
                 console.log(e);
                 return
             });
@@ -78,9 +83,10 @@ new Vue({
 
         historical: function() {
             // fetch /history endpoint and forEach do the parsing
-            // TODO receive paginated result
-            var oldestId;
-            fetch(`/history?oldest=${oldestId}`)
+            if(this.oldestMessage === 1){
+                return
+            }
+            fetch(`/history?oldest=${this.oldestMessage}`)
             .then( response => {
                 if(response.status !== 200) {
                     console.log('Whoops! Not the expected status! Status:' + response.status);
@@ -88,9 +94,10 @@ new Vue({
                 }
                 response.json()
                 .then( data => {
-                    var messages = data.messages.reverse()
+                    var messages = data.messages; // I used to reverse them for good order, but added a parameter to message parser instead
+                    this.oldestMessage = messages[messages.length - 1].id;
                     messages.forEach((msg) => {
-                        this.parseMessage(msg, false);
+                        this.parseMessage(msg, false, "top");
                     })
                 })
             })
@@ -99,10 +106,9 @@ new Vue({
             });
         },
 
-        unreadHist: function() {
-            // fetch /news endpoint and forEach do the parsing
-            var since;
-            fetch(`/newMessages?since=${since}`)
+        unreadHistory: function() {
+            // fetch /newMessages endpoint and forEach do the parsing
+            fetch(`/newMessages?id=${this.user.id}`)
             .then( response => {
                 if(response.status !== 200) {
                     console.log('Whoops! Not the expected status! Status:' + response.status);
@@ -110,9 +116,10 @@ new Vue({
                 }
                 response.json()
                 .then( data => {
+                    console.log(data.messages)
                     var messages = data.messages.reverse()
                     messages.forEach((msg) => {
-                        this.parseMessage(msg, false);
+                        this.parseMessage(msg, false, "bottom");
                     })
                 })
             })
@@ -121,12 +128,20 @@ new Vue({
             });
         },
 
-        parseMessage: function(msg, scroll) {
-            this.chatContent += '<div class="chip">'
-                    + '<img src="' + this.gravatarURL(msg.email) + '">' // Avatar
-                    + msg.username
-                + '</div>'
-                + emojione.toImage(msg.content) + '<br/>'; // Parse emojis
+        parseMessage: function(msg, scroll, appendTo) {
+            var messageElement = '<div class="chip">'
+            + '<img src="' + this.gravatarURL(msg.email) + '">' // Avatar
+            + msg.username
+        + '</div>'
+        + emojione.toImage(msg.content) + '<br/>'; // Parse emojis
+
+            if(appendTo === "top") {
+                this.chatContent = messageElement + this.chatContent;
+            } else if(appendTo === "bottom") {
+                this.chatContent += messageElement;
+            } else {
+                console.error("parseMessage needs appendTo parameter to be in [top, bottom]")
+            }
             if(scroll) {
                 this.smoothScrollToBottom("chat-messages");
             }
