@@ -47,7 +47,6 @@ func (h Handler) FetchHistory(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	//w.Write(output)
 }
 
 // FetchNewMessages asks for latest 10 messages since last registered interaction
@@ -60,8 +59,6 @@ func (h Handler) FetchNewMessages(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
-	//id, _ := strconv.ParseInt(r.FormValue("since"), 10, 64)
-	//since := time.Unix(i, 0)
 	err = h.db.Where("timestamp > ?", user.LastInteraction).Order("timestamp asc").Limit(10).Find(&msgs).Error
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -76,7 +73,6 @@ func (h Handler) FetchNewMessages(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	//w.Write(output)
 }
 
 // Login is the only endpoint for registry and/or login
@@ -111,7 +107,6 @@ func (h Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	w.Header().Set("content-type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	//w.Write(output)
 }
 
 // HandleConnections manages new socket connections and incoming messages
