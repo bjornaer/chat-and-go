@@ -55,6 +55,8 @@ The server handles the following endpoints:
 - [ ] Normalize DB --> kill the data redundancies
 - [ ] Add tests!!!
 - [ ] Split the frontend in a microservice in itslef
+- [ ] Encrypt Message content
+- [ ] Add Auth - and also encrypt passwords when they are added
 
 
 ### Bibliography
