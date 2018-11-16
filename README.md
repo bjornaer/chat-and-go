@@ -52,7 +52,7 @@ The server handles the following endpoints:
 *I am deciding that "unread" is all the messages that were sent since the last interaction from the user.
 
 ### TO-DO
-- [/] Normalize DB --> kill the data redundancies
+- [x] Normalize DB --> kill the data redundancies
 - [ ] Add tests!!!
 - [ ] Split the frontend in a microservice in itslef
 - [ ] Encrypt Message content
