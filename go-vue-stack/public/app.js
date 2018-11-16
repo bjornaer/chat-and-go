@@ -28,8 +28,7 @@ new Vue({
             if (this.newMsg != '') {
                 this.ws.send(
                     JSON.stringify({
-                        email: this.user.email,
-                        username: this.user.username,
+                        userId: this.user.id,
                         content: $('<p>').html(this.newMsg).text() // Strip out html
                     }
                 ));
@@ -62,7 +61,9 @@ new Vue({
                 }
                 return response.json();
             }).then(function(data) {
-                self.user = data;
+                self.user.id = data.id;
+                self.user.username = data.username;
+                self.user.email = data.email;
                 self.joined = true;
                 self.historical();
                 self.smoothScrollToBottom("chat-messages")
@@ -112,7 +113,6 @@ new Vue({
                 }
                 response.json()
                 .then( data => {
-                    console.log(data.messages)
                     var messages = data.messages.reverse()
                     messages.forEach((msg) => {
                         this.parseMessage(msg, false, "bottom");
@@ -126,8 +126,8 @@ new Vue({
 
         parseMessage: function(msg, scroll, appendTo) {
             var messageElement = '<div class="chip">'
-            + '<img src="' + this.gravatarURL(msg.email) + '">' // Avatar
-            + msg.username
+            + '<img src="' + this.gravatarURL(msg.user.email) + '">' // Avatar
+            + msg.user.username
         + '</div>'
         + emojione.toImage(msg.content) + '<br/>'; // Parse emojis
 

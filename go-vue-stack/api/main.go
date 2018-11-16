@@ -40,11 +40,11 @@ func main() {
 	handler.db.AutoMigrate(&User{}, &Message{}) // should move db stuff to a file
 	// Add first member of chat, Chatengo, just to say HI!
 	chatengo := User{Username: "ChatenGo", Email: "elmaxogochat@gmail.com", LastInteraction: time.Now()}
-	firstHi := Message{Username: "ChatenGo", Email: "elmaxogochat@gmail.com", Timestamp: time.Now(), Content: "Hello There!"}
 	err = handler.db.Where(User{Username: "ChatenGo"}).FirstOrCreate(&chatengo).Error
 	if err != nil {
 		log.Fatal("failed to add first element to DB table User: ", err)
 	}
+	firstHi := Message{UserID: chatengo.ID, Timestamp: time.Now(), Content: "Hello There!"}
 	err = handler.db.Where(Message{Content: "Hello There!"}).FirstOrCreate(&firstHi).Error
 	if err != nil {
 		log.Fatal("failed to add first element to DB table Message: ", err)

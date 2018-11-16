@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -30,9 +31,9 @@ func (h Handler) FetchHistory(w http.ResponseWriter, r *http.Request) {
 	id, _ := strconv.ParseInt(oldestLoadedID, 10, 64)
 	quantity, _ := strconv.ParseInt(messageAmount, 10, 64)
 	if id < 0 {
-		err = h.db.Order("ID desc").Limit(quantity).Find(&msgs).Error
+		err = h.db.Preload("User").Order("ID desc").Limit(quantity).Find(&msgs).Error
 	} else {
-		err = h.db.Where("ID < ?", oldestLoadedID).Order("ID desc").Limit(quantity).Find(&msgs).Error
+		err = h.db.Preload("User").Where("ID < ?", oldestLoadedID).Order("ID desc").Limit(quantity).Find(&msgs).Error
 	}
 	// Modify to return paginated result!
 
@@ -145,8 +146,9 @@ func (h Handler) HandleConnections(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
+		fmt.Printf("MESSAGE ID: %d | USER ID: %d", msg.ID, msg.UserID)
 		// update lastInteraction for user
-		err = h.db.Where("email = ?", msg.Email).First(&user).Error
+		err = h.db.Where("ID = ?", msg.UserID).First(&user).Error
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
@@ -166,9 +168,10 @@ func (h Handler) HandleMessages() {
 	for {
 		// Grab the next message from the broadcast channel
 		msg := <-h.broadcast
+		err := h.db.Preload("User").First(&msg).Error
 		// Send it out to every client that is currently connected
 		for client := range clients {
-			err := client.WriteJSON(&msg)
+			err = client.WriteJSON(&msg)
 			if err != nil {
 				log.Printf("error: %v", err)
 				client.Close()

@@ -6,16 +6,14 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-// my tables/structs are not normalized. Should normalize them and use smarter queries. But for now, this works.
-
-// Message defined what is written and from which user
+// Message defined what is written and from which user, adding the field User and UserID allows to set a 'belongs to' type of relation
 type Message struct {
 	//gorm.Model
 	ID        int       `json:"id" gorm:"primary_key"`
 	Timestamp time.Time `json:"timestamp"`
-	Username  string    `json:"username"`
 	Content   string    `json:"content"`
-	Email     string    `json:"email"`
+	User      User      `json:"user"`
+	UserID    int       `json:"userId"`
 }
 
 // Messages array of Message
